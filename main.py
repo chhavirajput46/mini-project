@@ -1,4 +1,6 @@
 import streamlit as st
+import streamlit_authenticator as stauth
+from dependancies import sign_up, fetch_users
 import io
 from pathlib import Path
 import select
@@ -8,6 +10,7 @@ import sys
 from typing import Dict, Tuple, Optional,IO
 import os
 
+st.set_page_config(page_title='Streamlit', page_icon='🐍', initial_sidebar_state='collapsed')
 
 model = "htdemucs"
 extensions = ["mp3", "wav", "ogg", "flac"] 
@@ -103,34 +106,89 @@ def save(audio):
         st.success("file uploaded")
     return folder
 
-
-st.title('Musically')
-menu=["Home","Pitcher","Recorder","About"]
+menu=["Login","Sign Up"]
 choice=st.sidebar.selectbox("Menu",menu)
-if choice=="Home":
-    st.subheader("Home")
-    audio=st.file_uploader("upload audio file",type=[])
-    st.audio(audio)
-    
-    if st.button("Seperate"):
-        with st.spinner("processing"):
-            inp_path = save(audio)
-            separate(inp_path)
-            st.balloons()
-            st.success("Task compeleted successfully")
-    st.header("Generated Files")
-    folders = os.listdir(out_folder)
-    selected = st.selectbox("select a music file", folders)
-    for file in os.listdir(os.path.join(out_folder, selected)):
-        st.subheader(file)
-        st.audio(f'{os.path.join(out_folder,selected,file)}')
-elif choice=="Pitcher":
-    st.subheader("Pitcher")
-elif choice=="Recorder":
-    st.subheader("Recorder")
-elif choice=="About":
-    st.subheader("About")
-    st.write('''This free application will help you seaprate drums, bass, and vocals from the rest of the accompaniment.
+if choice=="Login":
+    try:
+        users = fetch_users()
+        emails = []
+        usernames = []
+        passwords = []
 
-Once you choose a song, it will separate the vocals from the instrumental ones. You will get four tracks - a karaoke version of your song (no vocals), acapella version (isolated vocals), drum and bass.
-''')
+        def forget_password():
+            password1 = st.text_input(':blue[Password]', placeholder='Enter Your Password', type='password')
+            password2 = st.text_input(':blue[Confirm Password]', placeholder='Confirm Your Password', type='password')
+
+
+        for user in users:
+            emails.append(user['key'])
+            usernames.append(user['username'])
+            passwords.append(user['password'])
+
+        credentials = {'usernames': {}}
+        for index in range(len(emails)):
+            credentials['usernames'][usernames[index]] = {'name': emails[index], 'password': passwords[index]}
+
+        Authenticator = stauth.Authenticate(credentials, cookie_name='Streamlit', key='abcdef', cookie_expiry_days=4)
+
+        email, authentication_status, username = Authenticator.login(':green[Login]', 'main')
+
+        info, info1 = st.columns(2)
+
+        #if not authentication_status:
+            #b=st.button("sign up")
+            #sign()
+            
+
+        if username:
+            if username in usernames:
+                if authentication_status:
+                    # let User see app
+                    st.sidebar.subheader(f'Welcome {username}')
+                    Authenticator.logout('Log Out', 'sidebar')
+                    st.title('*Musically')
+                    menu=["Home","About"]
+                    choice=st.sidebar.selectbox("Menu",menu)
+                    if choice=="Home":
+                        st.subheader("Home")
+                        audio=st.file_uploader("upload audio file",type=[])
+                        st.audio(audio)
+                        
+                        if st.button("Seperate"):
+                            with st.spinner("processing"):
+                                inp_path = save(audio)
+                                separate(inp_path)
+                                st.balloons()
+                                st.success("Task compeleted successfully")
+                        st.header("Generated Files")
+                        folders = os.listdir(out_folder)
+                        selected = st.selectbox("select a music file", folders)
+                        for file in os.listdir(os.path.join(out_folder, selected)):
+                            st.subheader(file)
+                            st.audio(f'{os.path.join(out_folder,selected,file)}')
+                
+
+                    elif choice=="About":
+                        st.subheader("About")
+                        st.write('''This free application will help you seaprate drums, bass, and vocals from the rest of the accompaniment.
+
+                    Once you choose a song, it will separate the vocals from the instrumental ones. You will get four tracks - a karaoke version of your song (no vocals), acapella version (isolated vocals), drum and bass.
+                    ''')
+                    
+
+                elif not authentication_status:
+                    with info:
+                        st.error('Incorrect Password or username')
+                else:
+                    with info:
+                        st.warning('Please feed in your credentials')
+            else:
+                with info:
+                    st.warning('Username does not exist, Please Sign up')
+                    
+
+
+    except:
+        st.success('Refresh Page')
+if choice=="Sign Up":
+    sign_up()
