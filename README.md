@@ -48,8 +48,21 @@ for more details.
 | **HT Demucs f.t. (v4)**      | hybrid      | 800 songs         | **9.0**     | -           | -                 |
 
 ## This web application have
-1.Log in/Sign up page
-2.Music source sepration page
+1.Sign Up and Login page
+<p align="center">
+<img src="./signup.png" 
+width="800px"></p>
+<p align="center">
+<img src="./login.png" 
+width="800px"></p>
+2.Music source sepration page with output
+<p align="center">
+<img src="./sepration.png" 
+width="800px"></p>
+<p align="center">
+<img src="./seprated.png" 
+width="800px"></p>
+
 
 ## Requirements
 

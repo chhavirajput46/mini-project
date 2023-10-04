@@ -106,9 +106,9 @@ def save(audio):
         st.success("file uploaded")
     return folder
 
-menu=["Login","Sign Up"]
+menu=["Log in","Sign Up"]
 choice=st.sidebar.selectbox("Menu",menu)
-if choice=="Login":
+if choice=="Log in":
     try:
         users = fetch_users()
         emails = []
